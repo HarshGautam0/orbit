@@ -44,6 +44,16 @@ button,input,select{font:inherit;color:inherit}
 .ico img{position:absolute;width:55%;height:55%}
 .lbl{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 4px #0006}
 .nolbl .lbl{display:none}
+body.flow{overflow-y:auto;overflow-x:hidden}
+body.flow #stage{position:relative;top:auto;left:auto;transform:none;margin:calc(5vh + env(safe-area-inset-top)) auto 0}
+body.flow #canvas{display:flex;flex-wrap:wrap;justify-content:center;align-content:flex-start;gap:10px 4px;padding:26px 14px calc(110px + env(safe-area-inset-bottom));max-width:760px;margin:0 auto}
+body.flow .tile{position:relative}
+.flow.editing .tile{cursor:default;touch-action:auto}
+.flow.editing .tile .ico{outline:none;animation:none}
+#nav{position:fixed;top:calc(10px + env(safe-area-inset-top));left:10px;z-index:6;display:flex;gap:2px;padding:4px;border-radius:99px}
+#nav button{width:34px;height:34px;border-radius:50%;border:0;background:none;cursor:pointer;font-size:18px;line-height:1;color:var(--fg);transition:.15s}
+#nav button:hover{background:var(--accent);color:var(--on)}
+#nav[hidden]{display:none}
 .editing .tile{cursor:grab;touch-action:none}
 .editing .tile .ico{outline:2px dashed var(--accent);outline-offset:3px;animation:wob .5s infinite alternate}
 @keyframes wob{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
@@ -110,6 +120,7 @@ button,input,select{font:inherit;color:inherit}
   <form id="f"><input id="q" class="glass" type="search" placeholder="Search…" autocomplete="off" autofocus></form>
 </div>
 </div>
+<div id="nav" class="glass"><button id="nb" type="button" title="Back" aria-label="Back">‹</button><button id="nf" type="button" title="Forward" aria-label="Forward">›</button><button id="nr" type="button" title="Refresh" aria-label="Refresh">⟳</button></div>
 <div id="canvas"></div>
 <div id="bar">
   <button id="add" class="glass" title="Add shortcut">＋</button>
@@ -147,7 +158,7 @@ const DEF={engine:0,
  engines:[{n:'Google',u:'https://www.google.com/search?q=%s'},{n:'ChatGPT',u:'https://chatgpt.com/?q=%s'},
   {n:'Gemini',u:'https://gemini.google.com/app',copy:1},{n:'Claude',u:'https://claude.ai/new?q=%s'}],
  tiles:[{id:1,n:'YouTube',u:'https://youtube.com',x:14,y:72},{id:2,n:'Gmail',u:'https://mail.google.com',x:38,y:72},{id:3,n:'GitHub',u:'https://github.com',x:62,y:72}],
- s:{theme:'midnight',accent:'',bg:'',size:60,shape:'round',labels:true,icons:false,cmode:'analog',cstyle:'classic',secs:true,smooth:true,cface:true,bgImg:'',dim:20,inapp:true,clock:true,h24:false,name:''}};
+ s:{theme:'midnight',accent:'',bg:'',size:60,shape:'round',labels:true,icons:false,nav:true,cmode:'analog',cstyle:'classic',secs:true,smooth:true,cface:true,bgImg:'',dim:20,inapp:true,clock:true,h24:false,name:''}};
 function load(){
   let o=null;
   for(const k of [KEY,'startpage-v1']){try{o=JSON.parse(localStorage.getItem(k));if(o)break}catch{}}
@@ -178,7 +189,7 @@ function applyStyle(){
   document.body.style.backgroundAttachment='fixed';
   document.body.classList.toggle('nolbl',!S.s.labels);
   $('tc').content=t.tc;
-  updateClock();
+  $('nav').hidden=!S.s.nav;updateClock();layout();
   $('drawer').style.background=t.tc+'f2';$('modal').style.background=t.tc+'f2';
   tick();
 }
@@ -229,11 +240,46 @@ function renderEngines(){
     b.onclick=()=>{S.engine=i;save();renderEngines();$('q').focus()};$('engines').appendChild(b)});
   $('q').placeholder='Search with '+(S.engines[S.engine]||{n:'…'}).n+'…';
 }
+/* ---- responsive layout: free placement that never overlaps, else a scrolling grid ---- */
+let lq=0;const schedLayout=()=>{cancelAnimationFrame(lq);lq=requestAnimationFrame(layout)};
+function layout(){
+  const els=[...document.querySelectorAll('#canvas .tile')],B=document.body;
+  if(!els.length){B.classList.remove('flow');return}
+  const W=innerWidth,H=innerHeight;B.classList.remove('flow');
+  els.forEach(d=>{d.style.order=''});
+  let pos=W>=600?place(els,W,H):null;
+  if(!pos){
+    B.classList.add('flow');els.forEach(d=>{d.style.left='';d.style.top=''});
+    S.tiles.map((t,i)=>[t,i]).sort((a,b)=>a[0].y-b[0].y||a[0].x-b[0].x).forEach(([t,i],r)=>{els[i].style.order=r});
+    return}
+  els.forEach((d,i)=>{d.style.left=pos[i][0]+'px';d.style.top=pos[i][1]+'px'});
+}
+function place(els,W,H){
+  const m=8,g=6,r0=els[0].getBoundingClientRect(),tw=r0.width+g,th=r0.height+g;
+  const forb=['stage','bar','nav'].map(id=>{const e=document.getElementById(id);if(!e||e.hidden||getComputedStyle(e).display==='none')return null;
+    const r=e.getBoundingClientRect();return{l:r.left-10,t:r.top-8,r:r.right+10,b:r.bottom+8}}).filter(Boolean);
+  const placed=[];
+  const hit=(x,y)=>{if(x<m||y<m||x+tw>W-m||y+th>H-m)return true;const a={l:x,t:y,r:x+tw,b:y+th};
+    return forb.some(f=>a.l<f.r&&f.l<a.r&&a.t<f.b&&f.t<a.b)||placed.some(p=>a.l<p.r&&p.l<a.r&&a.t<p.b&&p.t<a.b)};
+  const out=new Array(els.length);
+  const items=S.tiles.map((t,i)=>({i,x:t.x/100*W,y:t.y/100*H,z:t.z||0,sy:t.y,sx:t.x})).sort((a,b)=>b.z-a.z||a.sy-b.sy||a.sx-b.sx);
+  const st=Math.max(10,Math.round(tw/6));
+  for(const it of items){
+    let x=Math.max(m,Math.min(W-tw-m,it.x)),y=Math.max(m,Math.min(H-th-m,it.y));
+    if(hit(x,y)){let best=null;
+      for(let yy=m;yy<=H-th-m;yy+=st)for(let xx=m;xx<=W-tw-m;xx+=st){const d=(xx-x)**2+(yy-y)**2;if(best&&d>=best.d)continue;if(!hit(xx,yy))best={d,xx,yy}}
+      if(!best)return null;x=best.xx;y=best.yy}
+    placed.push({l:x,t:y,r:x+tw,b:y+th});out[it.i]=[x,y];
+  }
+  return out;
+}
+addEventListener('resize',schedLayout);
+if('ResizeObserver' in window)new ResizeObserver(schedLayout).observe(document.getElementById('stage'));
 function renderTiles(){
   const c=$('canvas');c.innerHTML='';
   S.tiles.forEach(t=>{
     let host='';try{if(isWeb(t.u))host=new URL(norm(t.u)).hostname}catch{}
-    const d=document.createElement('div');d.className='tile'+(t.id===flashId?' flash':'');d.style.left=t.x+'%';d.style.top=t.y+'%';
+    const d=document.createElement('div');d.className='tile'+(t.id===flashId?' flash':'');
     d.innerHTML=`<button class="x" type="button">✕</button><button class="e" type="button">✎</button>
      <a href="${norm(t.u)}" target="${(t.m==='tab'||(!t.m&&!S.s.inapp))&&isWeb(t.u)?'_blank':'_self'}" rel="noopener noreferrer"><div class="ico glass"><span></span>${S.s.icons&&host?`<img alt="" referrerpolicy="no-referrer" src="https://${host}/favicon.ico">`:''}</div><div class="lbl"></div></a>`;
     const sp=d.querySelector('span');if(t.i){sp.textContent=t.i;sp.style.fontSize='calc(var(--tile)*.5)'}else sp.textContent=(t.n||'?')[0].toUpperCase();
@@ -243,17 +289,18 @@ function renderTiles(){
     d.querySelector('.x').onclick=()=>{S.tiles=S.tiles.filter(x=>x.id!==t.id);save();renderTiles()};
     d.querySelector('.e').onclick=()=>openTile(t);
     d.addEventListener('pointerdown',e=>{
-      if(!editing||e.target.closest('button'))return;
+      if(!editing||document.body.classList.contains('flow')||e.target.closest('button'))return;
       d.setPointerCapture(e.pointerId);
       const ox=e.clientX-d.offsetLeft,oy=e.clientY-d.offsetTop;
-      const mv=ev=>{t.x=Math.max(0,Math.min(90,(ev.clientX-ox)/innerWidth*100));
-        t.y=Math.max(0,Math.min(90,(ev.clientY-oy)/innerHeight*100));
-        d.style.left=t.x+'%';d.style.top=t.y+'%'};
-      const up=()=>{d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);save()};
+      const mv=ev=>{d.style.left=Math.max(0,Math.min(innerWidth-d.offsetWidth,ev.clientX-ox))+'px';
+        d.style.top=Math.max(0,Math.min(innerHeight-d.offsetHeight,ev.clientY-oy))+'px'};
+      const up=()=>{d.removeEventListener('pointermove',mv);d.removeEventListener('pointerup',up);
+        t.x=+(d.offsetLeft/innerWidth*100).toFixed(2);t.y=+(d.offsetTop/innerHeight*100).toFixed(2);t.z=Date.now();save();layout()};
       d.addEventListener('pointermove',mv);d.addEventListener('pointerup',up);
     });
     c.appendChild(d);
   });
+  layout();
 }
 
 /* shortcut modal */
@@ -285,10 +332,13 @@ document.addEventListener('keydown',e=>{
   if(e.altKey&&/^[1-9]$/.test(e.key)&&S.engines[e.key-1]){S.engine=e.key-1;save();renderEngines();e.preventDefault()}
 });
 $('add').onclick=()=>openTile(null);
-$('edit').onclick=()=>{editing=!editing;document.body.classList.toggle('editing',editing);$('edit').classList.toggle('on',editing)};
+$('edit').onclick=()=>{editing=!editing;document.body.classList.toggle('editing',editing);$('edit').classList.toggle('on',editing);
+  if(editing&&document.body.classList.contains('flow'))toast('Small window: shortcuts flow in a grid. Make the window larger to drag them freely.',3800)};
+$('nb').onclick=()=>history.back();$('nf').onclick=()=>history.forward();$('nr').onclick=()=>location.reload();
 
 /* search */
-function go(u){if(!S.s.inapp&&isWeb(u)){const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()}else location.href=u}
+let modNew=false;$('q').addEventListener('keydown',e=>{if(e.key==='Enter')modNew=e.ctrlKey||e.metaKey||e.shiftKey});
+function go(u){const nt=modNew;modNew=false;if(isWeb(u)&&(nt||!S.s.inapp)){const a=document.createElement('a');a.href=u;a.target='_blank';a.rel='noopener noreferrer';document.body.appendChild(a);a.click();a.remove()}else location.href=u}
 $('f').onsubmit=e=>{
   e.preventDefault();
   const q=$('q').value.trim();if(!q)return;
@@ -317,6 +367,7 @@ function openSettings(){
   <div class="fld"><span>Tile size</span><input type="range" id="ssz" min="44" max="92" value="${s.size}"></div>
   <div class="fld"><span>Tile shape</span><span class="seg" id="sshape">${Object.keys(SHAPES).map(k=>`<button type="button" data-v="${k}" class="${k===s.shape?'on':''}">${k}</button>`).join('')}</span></div>
   <div class="fld"><span>Open in installed app <small style="color:var(--muted)">(same window)</small></span><input type="checkbox" id="snt" ${s.inapp?'checked':''}></div>
+  <div class="fld"><span>Back / forward / refresh buttons</span><input type="checkbox" id="snv" ${s.nav?'checked':''}></div>
   <div class="fld"><span>Show tile names</span><input type="checkbox" id="slb" ${s.labels?'checked':''}></div>
   <div class="fld"><span>Load site icons <small style="color:var(--muted)">(contacts each site)</small></span><input type="checkbox" id="sic" ${s.icons?'checked':''}></div>
   <h4>Clock</h4>
@@ -335,7 +386,7 @@ function openSettings(){
   <p style="font-size:12px;color:var(--muted);margin:0">No analytics, cookies, accounts or tracking. Everything is stored only in this browser. The app makes no network requests of its own; the only traffic is when you search (to the engine you chose) or open a link. Site icons are off by default for this reason.</p>
   <h4>Data</h4>
   <div class="btns"><button type="button" class="btn" id="exp">Export</button><button type="button" class="btn" id="imp">Import</button><button type="button" class="btn dan" id="rst">Reset</button></div>
-  <p style="font-size:11px;color:var(--muted);margin-top:18px">Version 14</p>`;
+  <p style="font-size:11px;color:var(--muted);margin-top:18px">Version 16</p>`;
   const g=id=>$(id);
   g('dx').onclick=closeAll;
   document.querySelectorAll('.sw').forEach(b=>b.onclick=()=>{S.s.theme=b.dataset.t;S.s.accent='';save();applyStyle();openSettings()});
@@ -347,6 +398,7 @@ function openSettings(){
   g('snt').onchange=e=>{S.s.inapp=e.target.checked;save();renderTiles()};
   g('ssz').oninput=e=>{S.s.size=+e.target.value;save();applyStyle()};
   document.querySelectorAll('#sshape button').forEach(b=>b.onclick=()=>{S.s.shape=b.dataset.v;save();applyStyle();openSettings()});
+  g('snv').onchange=e=>{S.s.nav=e.target.checked;save();applyStyle()};
   g('slb').onchange=e=>{S.s.labels=e.target.checked;save();applyStyle()};
   g('sic').onchange=e=>{S.s.icons=e.target.checked;save();renderTiles()};
   document.querySelectorAll('#scm button').forEach(b=>b.onclick=()=>{S.s.cmode=b.dataset.v;save();updateClock();openSettings()});

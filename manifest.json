@@ -28,7 +28,6 @@
  ],
  "description": "Your personal start page: search, shortcuts and a clock.",
  "display_override": [
-  "window-controls-overlay",
-  "standalone"
+  "minimal-ui"
  ]
 }

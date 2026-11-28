@@ -71,7 +71,9 @@
       }
       #stage {
         position: fixed;
-        top: calc(7vh + var(--tb, 0px) + env(safe-area-inset-top));
+        top: calc(
+          7vh + var(--tb, 0px) + var(--bm, 0px) + env(safe-area-inset-top)
+        );
         left: 50%;
         transform: translateX(-50%);
         width: min(660px, 92vw);
@@ -102,7 +104,9 @@
       }
       @media (max-height: 520px) {
         #stage {
-          top: calc(3vh + var(--tb, 0px) + env(safe-area-inset-top));
+          top: calc(
+            3vh + var(--tb, 0px) + var(--bm, 0px) + env(safe-area-inset-top)
+          );
           gap: 10px;
         }
         #hello {
@@ -247,7 +251,10 @@
         top: auto;
         left: auto;
         transform: none;
-        margin: calc(5vh + var(--tb, 0px) + env(safe-area-inset-top)) auto 0;
+        margin: calc(
+            5vh + var(--tb, 0px) + var(--bm, 0px) + env(safe-area-inset-top)
+          )
+          auto 0;
       }
       body.flow #canvas {
         display: flex;
@@ -272,7 +279,9 @@
       }
       #nav {
         position: fixed;
-        top: calc(10px + env(safe-area-inset-top));
+        top: calc(
+          var(--tb, 0px) + var(--bm, 0px) + 10px + env(safe-area-inset-top)
+        );
         left: 10px;
         z-index: 8;
         display: flex;
@@ -317,6 +326,160 @@
       }
       #nav[hidden] {
         display: none;
+      }
+      #bm {
+        position: fixed;
+        top: var(--tb, 0px);
+        left: 0;
+        right: 0;
+        height: 38px;
+        z-index: 6;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 0 8px;
+        padding-top: env(safe-area-inset-top);
+        box-sizing: content-box;
+        border-radius: 0;
+        border-width: 0 0 1px 0;
+      }
+      #bm[hidden] {
+        display: none;
+      }
+      #bmrow {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        position: relative;
+        height: 38px;
+      }
+      .bmk {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        max-width: 170px;
+        padding: 5px 10px;
+        border-radius: 8px;
+        color: var(--fg);
+        text-decoration: none;
+        font-size: 13px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        transition: background 0.15s;
+      }
+      .bmk:hover {
+        background: color-mix(in srgb, var(--fg) 13%, transparent);
+      }
+      .bmk .bi {
+        width: 16px;
+        height: 16px;
+        border-radius: 5px;
+        display: grid;
+        place-items: center;
+        flex: none;
+        font-size: 10px;
+        font-weight: 700;
+        overflow: hidden;
+        position: relative;
+      }
+      .bmk .bi img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--solid);
+      }
+      .bmk .bl {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .bmk.drag {
+        position: relative;
+        z-index: 3;
+        opacity: 0.85;
+        background: color-mix(in srgb, var(--accent) 28%, transparent);
+        cursor: grabbing;
+      }
+      #bmrow .ins {
+        position: absolute;
+        top: 7px;
+        bottom: 7px;
+        width: 2px;
+        border-radius: 2px;
+        background: var(--accent);
+        pointer-events: none;
+      }
+      .bmhint {
+        color: var(--muted);
+        font-size: 12px;
+        padding: 0 8px;
+        white-space: nowrap;
+      }
+      #bma,
+      #bmo {
+        flex: none;
+        width: 30px;
+        height: 28px;
+        border: 0;
+        border-radius: 8px;
+        background: none;
+        color: var(--fg);
+        cursor: pointer;
+        font-size: 17px;
+        line-height: 1;
+      }
+      #bma:hover,
+      #bmo:hover {
+        background: color-mix(in srgb, var(--fg) 13%, transparent);
+      }
+      #pop {
+        position: fixed;
+        z-index: 50;
+        min-width: 170px;
+        max-width: min(320px, 90vw);
+        max-height: 60vh;
+        overflow: auto;
+        padding: 6px;
+        border-radius: 12px;
+        display: none;
+        background: var(--solid);
+        border: 1px solid var(--line);
+        box-shadow: 0 16px 40px -12px #000b;
+      }
+      #pop.open {
+        display: block;
+      }
+      #pop button,
+      #pop a {
+        display: block;
+        width: 100%;
+        padding: 8px 12px;
+        border: 0;
+        background: none;
+        border-radius: 8px;
+        color: var(--fg);
+        font-size: 13px;
+        text-align: left;
+        cursor: pointer;
+        text-decoration: none;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      #pop button:hover,
+      #pop a:hover {
+        background: color-mix(in srgb, var(--fg) 13%, transparent);
+      }
+      #pop .dan {
+        color: #ff7b7b;
       }
       #titlebar {
         display: none;
@@ -753,6 +916,26 @@
         </form>
       </div>
     </div>
+    <div id="bm" class="glass">
+      <div id="bmrow"></div>
+      <button
+        id="bmo"
+        type="button"
+        title="More bookmarks"
+        aria-label="More bookmarks"
+        hidden
+      >
+        »</button
+      ><button
+        id="bma"
+        type="button"
+        title="Add bookmark"
+        aria-label="Add bookmark"
+      >
+        ＋
+      </button>
+    </div>
+    <div id="pop"></div>
     <div id="nav" class="glass">
       <button id="nb" type="button" title="Back" aria-label="Back">
         <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" /></svg></button
@@ -934,6 +1117,7 @@
           shape: "round",
           labels: true,
           icons: false,
+          bmbar: true,
           nav: true,
           cmode: "analog",
           cstyle: "classic",
@@ -970,6 +1154,7 @@
           engine: o.engine || 0,
           engines: o.engines && o.engines.length ? o.engines : DEF.engines,
           tiles: o.tiles || DEF.tiles,
+          bm: o.bm || [],
           s,
         };
       }
@@ -1244,7 +1429,7 @@
           r0 = els[0].getBoundingClientRect(),
           tw = r0.width + g,
           th = r0.height + g;
-        const forb = ["stage", "bar", "nav", "titlebar"]
+        const forb = ["stage", "bar", "nav", "titlebar", "bm"]
           .map((id) => {
             const e = document.getElementById(id);
             if (!e || e.hidden || getComputedStyle(e).display === "none")
@@ -1301,7 +1486,10 @@
         }
         return out;
       }
-      addEventListener("resize", schedLayout);
+      addEventListener("resize", () => {
+        schedLayout();
+        fitBm();
+      });
       if (navigator.windowControlsOverlay)
         navigator.windowControlsOverlay.addEventListener("geometrychange", wco);
       if (window.navigation)
@@ -1399,7 +1587,21 @@
               return [+x.toFixed(1), y];
         return [45, 66];
       }
+      let editKind = "tile";
+      function openBm(b) {
+        editKind = "bm";
+        editId = b ? b.id : null;
+        $("mt").textContent = b ? "Edit bookmark" : "Add bookmark";
+        $("tn").value = b ? b.n : "";
+        $("tu").value = b ? b.u : "";
+        $("ti").value = b && b.i ? b.i : "";
+        $("tm").value = (b && b.m) || "";
+        $("modal").classList.add("open");
+        $("shade").classList.add("open");
+        setTimeout(() => $("tn").focus(), 50);
+      }
       function openTile(t) {
+        editKind = "tile";
         editId = t ? t.id : null;
         $("mt").textContent = t ? "Edit shortcut" : "Add shortcut";
         $("tn").value = t ? t.n : "";
@@ -1410,6 +1612,260 @@
         $("shade").classList.add("open");
         setTimeout(() => $("tn").focus(), 50);
       }
+      /* ---- bookmarks bar ---- */
+      const bmHue = (s) => {
+        let x = 0;
+        for (const c of s) x = (x * 31 + c.charCodeAt(0)) % 360;
+        return x;
+      };
+      const bmTarget = (b) =>
+        (b.m === "tab" || (!b.m && !S.s.inapp)) && isWeb(b.u)
+          ? "_blank"
+          : "_self";
+      function bmEl(b) {
+        const a = document.createElement("a");
+        a.className = "bmk";
+        a.dataset.id = b.id;
+        a.href = norm(b.u);
+        a.target = bmTarget(b);
+        a.rel = "noopener noreferrer";
+        a.title = b.n + "\n" + b.u;
+        a.draggable = false;
+        const ic = document.createElement("span");
+        ic.className = "bi";
+        if (b.i) {
+          ic.textContent = b.i;
+          ic.style.fontSize = "14px";
+        } else {
+          ic.textContent = (b.n || "?")[0].toUpperCase();
+          ic.style.background = "hsl(" + bmHue(b.n || b.u) + " 55% 42%)";
+          ic.style.color = "#fff";
+        }
+        let host = "";
+        try {
+          if (isWeb(b.u)) host = new URL(norm(b.u)).hostname;
+        } catch {}
+        if (S.s.icons && host && !b.i) {
+          const im = document.createElement("img");
+          im.alt = "";
+          im.referrerPolicy = "no-referrer";
+          im.src = "https://" + host + "/favicon.ico";
+          im.onerror = () => im.remove();
+          ic.appendChild(im);
+        }
+        const t = document.createElement("span");
+        t.className = "bl";
+        t.textContent = b.n;
+        a.append(ic, t);
+        return a;
+      }
+      let hiddenBm = [];
+      function renderBm() {
+        const on = !!S.s.bmbar,
+          row = $("bmrow");
+        $("bm").hidden = !on;
+        document.documentElement.style.setProperty("--bm", on ? "38px" : "0px");
+        row.innerHTML = "";
+        if (!S.bm.length) {
+          const s = document.createElement("span");
+          s.className = "bmhint";
+          s.textContent = "Click ＋ to add a bookmark";
+          row.appendChild(s);
+        }
+        S.bm.forEach((b) => row.appendChild(bmEl(b)));
+        fitBm();
+        schedLayout();
+      }
+      function fitBm() {
+        const row = $("bmrow"),
+          chips = [...row.querySelectorAll(".bmk")];
+        hiddenBm = [];
+        $("bmo").hidden = true;
+        chips.forEach((c) => (c.style.display = ""));
+        if (!chips.length || $("bm").hidden) return;
+        const ws = chips.map((c) => c.offsetWidth + 2),
+          pick = (av) => {
+            let u = 0;
+            const o = [];
+            ws.forEach((w, i) => {
+              if (o.length || u + w > av) o.push(i);
+              else u += w;
+            });
+            return o;
+          };
+        let hid = pick(row.clientWidth);
+        if (hid.length) {
+          $("bmo").hidden = false;
+          hid = pick(row.clientWidth);
+        }
+        hid.forEach((i) => {
+          chips[i].style.display = "none";
+          hiddenBm.push(S.bm.find((b) => b.id === +chips[i].dataset.id));
+        });
+      }
+      function pop(x, y, items) {
+        const p = $("pop");
+        p.innerHTML = "";
+        items.forEach((it) => {
+          const b = document.createElement(it.href ? "a" : "button");
+          if (it.href) {
+            b.href = norm(it.href);
+            b.target = it.target || "_self";
+            b.rel = "noopener noreferrer";
+          } else b.type = "button";
+          b.textContent = it.t;
+          if (it.c) b.className = it.c;
+          b.onclick = () => {
+            closePop();
+            if (it.f) it.f();
+          };
+          p.appendChild(b);
+        });
+        p.classList.add("open");
+        const r = p.getBoundingClientRect();
+        p.style.left =
+          Math.max(6, Math.min(x, innerWidth - r.width - 6)) + "px";
+        p.style.top =
+          Math.max(6, Math.min(y, innerHeight - r.height - 6)) + "px";
+      }
+      const closePop = () => $("pop").classList.remove("open");
+      function popBm(a, x, y) {
+        const b = S.bm.find((v) => v.id === +a.dataset.id);
+        if (!b) return;
+        pop(x, y, [
+          { t: "Edit…", f: () => openBm(b) },
+          { t: "Open in new tab", href: b.u, target: "_blank" },
+          {
+            t: "Delete",
+            c: "dan",
+            f: () => {
+              S.bm = S.bm.filter((v) => v.id !== b.id);
+              save();
+              renderBm();
+              toast("Bookmark removed");
+            },
+          },
+        ]);
+      }
+      $("bma").onclick = () => openBm(null);
+      $("bmo").onclick = (e) => {
+        const r = e.currentTarget.getBoundingClientRect();
+        if ($("pop").classList.contains("open")) {
+          closePop();
+          return;
+        }
+        pop(
+          r.right - 190,
+          r.bottom + 4,
+          hiddenBm.map((b) => ({ t: b.n, href: b.u, target: bmTarget(b) })),
+        );
+      };
+      document.addEventListener(
+        "pointerdown",
+        (e) => {
+          if (!e.target.closest("#pop") && !e.target.closest("#bmo"))
+            closePop();
+        },
+        true,
+      );
+      let supClick = false;
+      $("bmrow").addEventListener(
+        "click",
+        (e) => {
+          if (supClick) {
+            e.preventDefault();
+            e.stopPropagation();
+            supClick = false;
+          }
+        },
+        true,
+      );
+      $("bmrow").addEventListener("contextmenu", (e) => {
+        const a = e.target.closest(".bmk");
+        if (a) {
+          e.preventDefault();
+          popBm(a, e.clientX, e.clientY);
+        }
+      });
+      $("bmrow").addEventListener("pointerdown", (e) => {
+        const a = e.target.closest(".bmk");
+        if (!a || e.button > 0) return;
+        const id = +a.dataset.id,
+          sx = e.clientX,
+          sy = e.clientY,
+          pid = e.pointerId;
+        let moved = false,
+          idx = -1,
+          ins = null,
+          lp = null;
+        const vis = () =>
+          [...$("bmrow").querySelectorAll(".bmk")].filter(
+            (c) => c.style.display !== "none",
+          );
+        if (e.pointerType === "touch")
+          lp = setTimeout(() => {
+            lp = null;
+            if (!moved) {
+              supClick = true;
+              popBm(a, sx, sy + 10);
+            }
+          }, 550);
+        const mv = (ev) => {
+          if (!moved) {
+            if (Math.hypot(ev.clientX - sx, ev.clientY - sy) < 8) return;
+            moved = true;
+            clearTimeout(lp);
+            lp = null;
+            a.classList.add("drag");
+            try {
+              a.setPointerCapture(pid);
+            } catch {}
+            ins = document.createElement("div");
+            ins.className = "ins";
+            $("bmrow").appendChild(ins);
+          }
+          a.style.transform = "translateX(" + (ev.clientX - sx) + "px)";
+          const cs = vis().filter((c) => c !== a),
+            rl = $("bmrow").getBoundingClientRect().left;
+          idx = cs.findIndex((c) => {
+            const r = c.getBoundingClientRect();
+            return ev.clientX < r.left + r.width / 2;
+          });
+          if (idx < 0) idx = cs.length;
+          const ref = cs[idx];
+          ins.style.left =
+            (ref
+              ? ref.getBoundingClientRect().left - rl - 1
+              : cs.length
+                ? cs[cs.length - 1].getBoundingClientRect().right - rl + 1
+                : 0) + "px";
+        };
+        const up = () => {
+          removeEventListener("pointermove", mv);
+          removeEventListener("pointerup", up);
+          removeEventListener("pointercancel", up);
+          clearTimeout(lp);
+          if (!moved) return;
+          supClick = true;
+          const cs = vis()
+              .filter((c) => c !== a)
+              .map((c) => +c.dataset.id),
+            from = S.bm.findIndex((b) => b.id === id),
+            item = S.bm.splice(from, 1)[0];
+          const to =
+            idx < cs.length
+              ? S.bm.findIndex((b) => b.id === cs[idx])
+              : cs.length
+                ? S.bm.findIndex((b) => b.id === cs[cs.length - 1]) + 1
+                : 0;
+          S.bm.splice(to, 0, item);
+          save();
+          renderBm();
+        };
+        addEventListener("pointermove", mv);
+        addEventListener("pointerup", up);
+        addEventListener("pointercancel", up);
+      });
       function closeAll() {
         ["modal", "drawer", "shade"].forEach((i) =>
           $(i).classList.remove("open"),
@@ -1424,6 +1880,19 @@
           if (!u) {
             toast("Enter a link first");
             $("tu").focus();
+            return;
+          }
+          if (editKind === "bm") {
+            if (editId) {
+              const b = S.bm.find((x) => x.id === editId);
+              b.n = n || u;
+              b.u = u;
+              b.i = i;
+              b.m = m;
+            } else S.bm.push({ id: Date.now(), n: n || u, u, i, m });
+            if (save()) toast("Bookmark saved ✓");
+            renderBm();
+            closeAll();
             return;
           }
           if (editId) {
@@ -1455,7 +1924,10 @@
       $("mc").onclick = closeAll;
       $("shade").onclick = closeAll;
       document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeAll();
+        if (e.key === "Escape") {
+          closeAll();
+          closePop();
+        }
         if (e.altKey && /^[1-9]$/.test(e.key) && S.engines[e.key - 1]) {
           S.engine = e.key - 1;
           save();
@@ -1549,6 +2021,7 @@
     )
     .join("")}</span></div>
   <div class="fld"><span>Open in installed app <small style="color:var(--muted)">(same window)</small></span><input type="checkbox" id="snt" ${s.inapp ? "checked" : ""}></div>
+  <div class="fld"><span>Show bookmarks bar</span><input type="checkbox" id="sbm" ${s.bmbar ? "checked" : ""}></div>
   <div class="fld"><span>Back / forward / refresh buttons</span><input type="checkbox" id="snv" ${s.nav ? "checked" : ""}></div>
   <div class="fld"><span>Show tile names</span><input type="checkbox" id="slb" ${s.labels ? "checked" : ""}></div>
   <div class="fld"><span>Load site icons <small style="color:var(--muted)">(contacts each site)</small></span><input type="checkbox" id="sic" ${s.icons ? "checked" : ""}></div>
@@ -1578,7 +2051,7 @@
   <p style="font-size:12px;color:var(--muted);margin:0">No analytics, cookies, accounts or tracking. Everything is stored only in this browser. The app makes no network requests of its own; the only traffic is when you search (to the engine you chose) or open a link. Site icons are off by default for this reason.</p>
   <h4>Data</h4>
   <div class="btns"><button type="button" class="btn" id="exp">Export</button><button type="button" class="btn" id="imp">Import</button><button type="button" class="btn dan" id="rst">Reset</button></div>
-  <p style="font-size:11px;color:var(--muted);margin-top:18px">Version 19</p>`;
+  <p style="font-size:11px;color:var(--muted);margin-top:18px">Version 20</p>`;
         const g = (id) => $(id);
         g("dx").onclick = closeAll;
         document.querySelectorAll(".sw").forEach(
@@ -1627,6 +2100,12 @@
           S.s.inapp = e.target.checked;
           save();
           renderTiles();
+          renderBm();
+        };
+        g("sbm").onchange = (e) => {
+          S.s.bmbar = e.target.checked;
+          save();
+          renderBm();
         };
         g("ssz").oninput = (e) => {
           S.s.size = +e.target.value;
@@ -1656,6 +2135,7 @@
           S.s.icons = e.target.checked;
           save();
           renderTiles();
+          renderBm();
         };
         document.querySelectorAll("#scm button").forEach(
           (b) =>
@@ -1789,6 +2269,7 @@
       applyStyle();
       renderEngines();
       renderTiles();
+      renderBm();
       wco();
       syncNav();
       if ("serviceWorker" in navigator) {
